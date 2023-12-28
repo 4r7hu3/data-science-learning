@@ -1,8 +1,4 @@
-# ignores .ipynb_checkpoints
 *.ipynb_checkpoints
-
-# ignores a directory
-/Certifications
-
+/rsconnect
 
 

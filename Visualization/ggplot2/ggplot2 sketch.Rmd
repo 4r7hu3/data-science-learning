@@ -1,0 +1,363 @@
+---
+title: "A first sketch on ggplot2"
+author: "Arthur Silva"
+date: "05/12/2023"
+output: 
+  html_document:
+    highlight: pygments
+    theme: flatly
+    number_sections: yes
+    toc: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=FALSE}
+library(kableExtra)
+```
+
+
+# Init
+
+We first need to load the libraries `tidyverse` and `palmerpenguins`. The latter will provide us the dataset which will be used to reproduce the main charts. For some extra graphical resources, we'll use `patchwork`.
+
+```{r libraries, message=FALSE}
+library(tidyverse)
+library(patchwork)
+library(palmerpenguins)
+```
+
+Now we are good to go. But first, let's check our dataset and it's structure:
+
+```{r echo=FALSE}
+penguins |> head() |> kable(align = 'c', caption = '1st six rows from Palmerpenguins dataset') |> 
+  kable_styling(bootstrap_options = c('hover', 
+                                     'striped', 
+                                     'condensed', 
+                                     'reponsive'))
+```
+
+So, we got `r dim(penguins)[1]` observations and `r dim(penguins)[2]` variables, where 3 of them are categorical, 2 are continuous, and 3 are discrete.
+
+We also got `r penguins |> is.na() |> sum()` `NA` values, being sex variable the one with the most amount.
+
+```{r}
+s = colSums(is.na(penguins)) |> data.frame() |> 
+  rownames_to_column(var = 'Column') |> 
+  rename(NA_Freq = 'colSums.is.na.penguins..') # NA values by column
+```
+
+```{r echo=FALSE}
+s |> kable() |> 
+  kable_styling(bootstrap_options = c('hover', 'striped', 'condensed', 'reponsive'), 
+                full_width = F) 
+```
+
+
+# Plots
+
+## Scatter plots
+
+Motivation: is there any relation between penguin's flipper length (mm) and their body mass (g)? Remember your data has `NA` values!
+
+```{r}
+penguins |> ggplot(aes(flipper_length_mm, body_mass_g)) +
+  geom_point(na.rm = T)
+```
+
+Motivation: how would the previous chart be if we wanted to see the spread by species? Use **color** property.
+
+```{r}
+penguins |> ggplot(aes(flipper_length_mm, body_mass_g, color = species)) + 
+  geom_point(na.rm = T)
+```
+
+Motivation: and if instead of different colors, we wanted to have different **shapes** representing each specie?
+
+```{r}
+penguins |> ggplot(aes(flipper_length_mm, body_mass_g, shape = species)) + 
+  geom_point(na.rm = T)
+```
+
+Motivation: can we have both **shape and color** properties to represent the species?
+
+```{r warning=FALSE}
+penguins |> ggplot(aes(flipper_length_mm, body_mass_g, shape = species, color = species)) + 
+  geom_point(na.rm = T)
+```
+
+Motivation: how to add a *fade* effect on points? Consider the first plot you made.
+
+```{r warning=TRUE}
+penguins |> ggplot(aes(flipper_length_mm, body_mass_g, alpha = species)) + 
+  geom_point(na.rm = T)
+```
+
+Note ggplot yields a warning advising that using `alpha` for discrete variables is not recommended.
+
+Motivation: considering the first plot, how can one change the color of the points?
+
+```{r}
+penguins |> ggplot(aes(flipper_length_mm, body_mass_g)) + 
+  geom_point(na.rm = T, colour = 'purple')
+```
+
+
+Motivation: it's cool to see the spread of the penguin's body masses along with their flipper's lengths, all in on chart. But how could we see it separately?
+
+```{r}
+penguins |> ggplot(aes(flipper_length_mm, body_mass_g)) + 
+  geom_point(na.rm = T) + 
+  facet_wrap(~species)
+```
+
+It's also possible to use `facet_grid()` function, although it's used more often for two variables.
+
+```{r}
+penguins |> ggplot(aes(flipper_length_mm, body_mass_g)) + 
+  geom_point(na.rm = T) + 
+  facet_grid(~species)
+```
+
+With two variables:
+
+```{r}
+penguins |> ggplot(aes(flipper_length_mm, body_mass_g)) + 
+  geom_point(na.rm = T) + 
+  facet_grid(sex~species)
+```
+
+Note we have `NA` values in the sex variable, and they're observations from *Adelie* and *Gentoo* species.
+
+And if we had to hide the `NA` values:
+
+```{r}
+penguins |> drop_na() |> ggplot(aes(flipper_length_mm, body_mass_g)) +
+  geom_point() +
+  facet_grid(sex~species)
+```
+
+
+Motivation: by seeing the charts above, it looks reasonable to say that we could fit a regression model with these two variables (body mass and flipper length). How to add a regression line to the previous chart?
+
+```{r message=FALSE, warning=FALSE}
+penguins |> ggplot(aes(flipper_length_mm, body_mass_g)) + 
+  geom_point(na.rm = T) +
+  geom_smooth(na.rm = T)
+```
+
+By default, ggplot plots the regression line using the **loess** method, but this behavior can be me changed through the `method` parameter:
+
+```{r message=FALSE, warning=FALSE}
+penguins |> ggplot(aes(flipper_length_mm, body_mass_g)) + 
+  geom_point(na.rm = T) + 
+  geom_smooth(na.rm = T, method = 'lm')
+```
+
+Motivation: at last, what if we wanted to plot the regression line, considering all types of species?
+
+```{r message=FALSE}
+penguins |> ggplot(aes(flipper_length_mm, body_mass_g, linetype = species)) + 
+  geom_smooth(na.rm = T, method = 'lm')
+```
+
+
+## Bar plots
+
+Motivation: create a bar chart showing the frequency of species of penguins.
+
+```{r}
+penguins |> ggplot(aes(x = species)) + 
+  geom_bar()
+```
+
+We could also make a horizontal bar chart:
+
+```{r}
+penguins |> ggplot(aes(y = species)) + 
+  geom_bar()
+```
+
+
+Motivation: note that the previous charts displays the frequencies sorted alphabetically. To make it be sorted by the frequency, we need to use `forcats` library, which helps us a lot when we're working with categorical variables (factors).
+
+```{r}
+penguins |> ggplot(aes(y = fct_infreq(species))) +
+  geom_bar()
+```
+
+Now, let's sort in descending order:
+
+```{r}
+penguins |> ggplot(aes(y = fct_rev(fct_infreq(species)))) + 
+  geom_bar()
+```
+
+Motivation: how would look a stacked bar chart of species, stacked by island? Use the `fill` parameter in `aes()`.
+
+```{r}
+penguins |> ggplot(aes(y = fct_rev(fct_infreq(species)), fill = island)) +
+  geom_bar()
+```
+
+
+Note that all **Gentoos** are from *Biscoe* island, while all **Chinstraps** are from *Dream*, and **Adelies** are spread across all islands!
+
+Motivation: and if we wanted a 'side-by-side' bar plot for each specie and island?
+
+```{r}
+penguins |> ggplot(aes(species, fill = island)) + geom_bar(position = 'dodge')
+```
+
+
+## Food charts
+
+Motivation: It is highly recommended not to use this kind of charts, specially when we have several categories within one variable. But only for the purpose of training, let's make a pie chart for the penguin species.
+
+```{r}
+penguins |> count(species) |> ggplot(aes(x = '', y = n, fill = species)) + 
+  geom_col() + 
+  coord_polar("y", start = 0) +
+  theme_void()
+```
+
+Note that even it's implementation is a bit harder compared to other plots.
+
+Motivation: and for donat chart?
+
+```{r}
+penguins |> count(species) |> ggplot(aes(2, n, fill = species)) + 
+  geom_col() + 
+  coord_polar("y") + 
+  xlim(c(0.2, 3)) + 
+  theme_void()
+```
+
+
+## Histograms
+
+Motivation: consider now that we wanted to know the distribution of the penguin's bill length (mm) variable. A good start, is to plot a histogram, since it is a continuous variable.
+
+```{r message=FALSE}
+penguins |> ggplot(aes(bill_length_mm)) + 
+  geom_histogram(na.rm = T)
+```
+
+By default, the bins plotted (amount and width) were calculated automatically by ggplot, but if we  wanted to specify a number, we could use the `bins` and/or `binwidth` parameters:
+
+```{r message=FALSE}
+p1 = penguins |> ggplot(aes(bill_length_mm)) + 
+  geom_histogram(na.rm = T)
+
+p2 = penguins |> ggplot(aes(bill_length_mm)) + 
+  geom_histogram(na.rm = T, binwidth = 0.3)
+
+p3 = penguins |> ggplot(aes(bill_length_mm)) + 
+  geom_histogram(na.rm = T, binwidth = 2)
+
+p3/p1/p2 # patchwork is awesome!
+```
+
+```{r}
+penguins |> ggplot(aes(bill_length_mm)) + 
+  geom_histogram(na.rm = T, bins = 20)
+```
+
+Motivation: and finally, what if we wanted to plot the sample distribution curve with the histogram?
+
+```{r message=FALSE, warning=FALSE}
+penguins |> ggplot(aes(bill_length_mm)) + 
+  geom_histogram(na.rm = T, aes(y = after_stat(density))) +
+  geom_density(na.rm = T, color = 'red', lwd = .8)
+```
+
+Note that in `geom_histogram()`, it was necessary to define the y-axis to be the same scale as density.
+
+## Boxplots
+
+Motivation: take a look in the distribution of flipper length and species variables of the penguins dataset, using a boxplot. What are the properties of both?
+
+```{r}
+penguins |> ggplot(aes(species, flipper_length_mm)) + 
+  stat_boxplot(geom = 'errorbar', na.rm = T, width = .25) + 
+  geom_boxplot(na.rm = T)
+```
+
+Their amplitude are basically the same, and they're all approximately symmetric.
+We see only two outliers, both presented in *Adelie* specie.
+
+Motivation: species is a categorical variable. How can we add the points together with the boxplot, adding a little of noise to transform from discrete (count) to continuous?
+
+```{r message=FALSE, warning=FALSE}
+penguins |> ggplot(aes(species, flipper_length_mm)) + 
+  stat_boxplot(geom = 'errorbar', na.rm = T, width = .25) +
+  geom_boxplot(na.rm = T) + 
+  geom_jitter(na.rm = T)
+```
+
+The `jitter` function adds a little amount of random variation to the location of each point, helping to see clearly the plot of discrete variables (in this case, we're counting each specie flipper length).
+
+## Line plot
+
+Line charts in ggplot2 works better with time series. Therefore, let's use the `economics` dataset, from ggplot2, to plot some line charts.
+
+Motivation: plot the number of unemployment over time.
+
+```{r}
+economics |> ggplot(aes(date, unemploy)) + geom_line()
+```
+
+Motivation: plot the personal saving rates with median duration of unemployment over time.
+
+```{r}
+economics |> ggplot(aes(date)) + 
+  geom_line(aes(y = psavert), colour = 'darkred') + 
+  geom_line(aes(y = uempmed), colour = 'steelblue')
+```
+
+Motivation: now, using the previous variables, plot an area chart.
+
+```{r}
+economics |> ggplot(aes(date)) + 
+  geom_area(aes(y = psavert), colour = 'orange', alpha = 0.4, fill = 'orange') + 
+  geom_area(aes(y = uempmed), colour = 'steelblue', alpha = 0.4, fill = 'steelblue')
+```
+
+
+## QQ plot
+
+Motivation: we were able to look at the histograms and boxplots for flipper and bill length variables, and concluded that these data are not normally distributed. But what if we wanted to plot a qqnorm chart?
+
+```{r}
+penguins |> ggplot(aes(sample = flipper_length_mm)) + stat_qq(na.rm = T) + stat_qq_line(na.rm = T)
+```
+
+
+## Labels and Annotations
+
+Motivation: choose any chart above and add to it labels, like title, subtitle, axis labels, legends labels and colors, etc.
+
+```{r}
+penguins |> ggplot(aes(y = fct_rev(fct_infreq(species)), fill = island)) +
+  geom_bar() + 
+  labs(title = "Penguin species by island", subtitle = 'Analyzing penguin distribution', 
+       caption = 'Dataset: palmerpenguins', x = 'Penguins', y = 'Specie', fill = 'Island') +
+  geom_text(aes(label = after_stat(count)),
+            stat = 'count',
+            position = position_stack(vjust = 0.5),
+            fontface = 'bold')
+```
+
+```{r}
+penguins |> group_by(species, island) |> count() |> arrange(species, desc(n)) |> kable() |> 
+  kable_styling(bootstrap_options = c('hover', 'striped', 'condensed', 'reponsive'), 
+                full_width = F)
+```
+
+
+
