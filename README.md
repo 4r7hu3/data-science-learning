@@ -11,3 +11,5 @@ This repo keeps some of my steps along learning data science contents, storing s
 * [Tests](https://github.com/4r7hu3/data-science-learning/tree/main/Tests) - While reading Wes McKinney's book, I was going to try and reproduce some examples and exercises. There's also a Markdown file here, that despite it's not one of the contents of the book, was part of my plans to learn. 
 
 * [Visualization](Visualization) - These are some good practices and recommendations about the use of charts, according to your purposes. There are also some R files which shows my hands-on with ggplot2.
+
+* [Google courses](Google) - Here, I store some files from Google courses I take through Coursera, like "Google IT Automation with Python Professional Certificate".
