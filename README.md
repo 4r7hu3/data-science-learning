@@ -8,7 +8,7 @@ This repo keeps some of my steps along learning data science contents, storing s
 
 * [Atividade de férias](Atividade%20de%20F%C3%A9rias) - It was an activity developed entirely by [PET Estatística](https://sites.google.com/view/petestatisticaufc/), in which I tried to reproduce and study by my own. This work just made me discover a lot of other new tools to use and apply on my own current and future works, increasing a bit more my knowledge about Exploratory Data Analysis. 
 
-* [Tests](https://github.com/4r7hu3/data-science-learning/tree/main/Tests) - While reading Wes McKinney's book, I was going to try and reproduce some examples and exercises. There's also a Markdown file here, that despite it's not one of the contents of the book, was part of my plans to learn. 
+* [DSA](https://github.com/4r7hu3/data-science-learning/tree/main/DSA) - This is some of the exercises provided by "Data Science Academy" about Python for Data Analysis. That's a good basis for the ones who are starting to learn the language.
 
 * [Visualization](Visualization) - These are some good practices and recommendations about the use of charts, according to your purposes. There are also some R files which shows my hands-on with ggplot2.
 
